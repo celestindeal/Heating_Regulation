@@ -2,12 +2,14 @@ import 'dart:developer';
 
 class Appartement {
   final bool fonctionnement;
+  final bool fonctionnementGeneral;
   final String mode;
-  final double temperature;
-  final double temperatureVoulu;
-  final String  heure;
+  final String temperature;
+  final String temperatureVoulu;
+  final String heure;
 
   const Appartement({
+    required this.fonctionnementGeneral,
     required this.fonctionnement,
     required this.mode,
     required this.temperature,
@@ -16,12 +18,13 @@ class Appartement {
   });
 
   factory Appartement.fromJson(Map<String, dynamic> json) {
-    return Appartement(  
+    return Appartement(
+      fonctionnementGeneral: json["FonctionnementGeneral"] as bool,
       fonctionnement: json["Fonctionnement"] as bool,
-      mode: json["Mode"] ,
-      temperature: json["Temperature"] as double,
-      temperatureVoulu: json["TemperatureVoulu"] as double,
-      heure: json["Heure"] ,
+      mode: json["Mode"],
+      temperature: json["Temperature"].toString(),
+      temperatureVoulu: json["TemperatureVoulu"].toString(),
+      heure: json["Heure"],
     );
   }
 }
