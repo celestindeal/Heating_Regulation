@@ -2,14 +2,16 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'Variable.dart';
+import 'package:date_format/date_format.dart';
 
 class Appartement {
-  bool fonctionnement;
-  int fonctionnementGeneral;
+  String fonctionnement;
+  String fonctionnementGeneral;
   String mode;
   String temperature;
   String temperatureVoulu;
   String heure;
+  var actualisation = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
 
   Appartement({
     required this.fonctionnement,
@@ -21,13 +23,27 @@ class Appartement {
   });
 
   void newvalue(Map<String, dynamic> json) {
-    fonctionnementGeneral = json['FonctionnementGeneral'];
-    fonctionnement = json['Fonctionnement'];
+    switch (json['FonctionnementGeneral'].toString()) {
+      case "0":
+        fonctionnementGeneral = "OFF";
+        break;
+      case "1":
+        fonctionnementGeneral = "ON";
+        break;
+      case "2":
+        fonctionnementGeneral = "FORCE";
+        break;
+      default:
+    }
+    if (json['Fonctionnement'].toString() == "false")
+      fonctionnement = "OFF";
+    else
+      fonctionnement = "ON";
     mode = json['Mode'];
     temperature = json['Temperature'].toString();
     temperatureVoulu = json['TemperatureVoulu'].toString();
     heure = json['Heure'];
-    log("newvalue");
+    actualisation = formatDate(DateTime.now(), [HH, ':', nn, ':', ss]);
   }
 
   Future refresh() async {
@@ -45,7 +61,7 @@ class Appartement {
     return;
   }
 
-  void fetchAppartementFonctionnementGeneralON() async {
+  Future fetchAppartementFonctionnementGeneralON() async {
     final response =
         await http.get(Uri.parse(Variable.urlFonctionnementGeneralON));
     if (response.statusCode == 200) {
@@ -55,9 +71,29 @@ class Appartement {
     }
   }
 
-  void fetchAppartementFonctionnementGeneralOFF() async {
+  Future fetchAppartementFonctionnementGeneralOFF() async {
     final response =
         await http.get(Uri.parse(Variable.urlFonctionnementGeneralOFF));
+    if (response.statusCode == 200) {
+      newvalue(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load album');
+    }
+  }
+
+  Future fetchAppartementFonctionnementGeneralFORCE() async {
+    final response =
+        await http.get(Uri.parse(Variable.urlFonctionnementGeneralFORCE));
+    if (response.statusCode == 200) {
+      newvalue(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load album');
+    }
+  }
+
+  Future fetchAppartementReglageTemperature(String temperature) async {
+    final response = await http
+        .get(Uri.parse(Variable.urlregelargetemperature + temperature));
     if (response.statusCode == 200) {
       newvalue(jsonDecode(response.body));
     } else {
