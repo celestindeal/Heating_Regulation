@@ -5,6 +5,7 @@ import 'Variable.dart';
 import 'package:date_format/date_format.dart';
 
 class Appartement {
+  bool swith;
   String fonctionnement;
   String fonctionnementGeneral;
   String mode;
@@ -20,14 +21,17 @@ class Appartement {
     required this.temperature,
     required this.temperatureVoulu,
     required this.heure,
+    required this.swith,
   });
 
   void newvalue(Map<String, dynamic> json) {
     switch (json['FonctionnementGeneral'].toString()) {
       case "0":
+        swith = false;
         fonctionnementGeneral = "OFF";
         break;
       case "1":
+        swith = true;
         fonctionnementGeneral = "ON";
         break;
       case "2":
