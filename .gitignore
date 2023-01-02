@@ -43,3 +43,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 lib/Variable.dart
+board code/arduino_secrets.h
