@@ -1,8 +1,10 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
+#include <WiFiUdp.h>
 #include "DHT.h"
 #include <ArduinoJson.h>
 #include "arduino_secrets.h"
+#include "fonction.h"
 
 #define DHTPIN A1
 #define DHTTYPE DHT22
@@ -15,11 +17,13 @@ int keyIndex = 0;                 // your network key Index number (needed only 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
-int fonctionnementGeneral = 1; 
-int modeFonctionnement = 1;
+int fonctionnementGeneral = 0; 
+int modeFonctionnement = 0;
 bool Operating = false; 
 float temperature = 0;
 float temperatureVoulu = 19.5 ; 
+WiFiUDP Udp;
+unsigned int localPort = 2390; 
 
 void setup() {
 
@@ -29,6 +33,8 @@ void setup() {
  
   WiFi.begin(ssid, pass);
   server.begin();                    // you're connected now, so print out the status
+  
+  Udp.begin(localPort);
 }
 
 void loop() {
@@ -58,9 +64,8 @@ void loop() {
       default:
         Operating = false;
         break;
-  
-  delay(5000);
   }
+  delay(5000);
 }
 void reguletionTemperature(){
   temperature = dht.readTemperature();
@@ -75,12 +80,15 @@ void sendclient(WiFiClient client){
   temperature = dht.readTemperature();
   String message = "Temperature = " + String(temperature)+" °C // Le mode chosir est " + modeFonctionnement  + Operating;
   StaticJsonDocument<200> Appartement;
+  String timeActuel = String();
+  timeActuel = time(Udp);
+  Serial.println(timeActuel);
   Appartement["FonctionnementGeneral"] = fonctionnementGeneral;
   Appartement["Fonctionnement"] = Operating;
   Appartement["Mode"] = modeFonctionnement;
   Appartement["Temperature"] = temperature;
   Appartement["TemperatureVoulu"] = temperatureVoulu;
-  Appartement["Heure"] = "Pas encore programmer";
+  Appartement["Heure"] = timeActuel;
   switch (modeFonctionnement) {
     case 1:
       Appartement["Mode"] = "Temperature";
