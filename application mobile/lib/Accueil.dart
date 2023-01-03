@@ -20,7 +20,7 @@ class _AccueilState extends State<Accueil> {
       heure: '',
       mode: '',
       temperature: '',
-      swith: true);
+      swith: false);
   double _value = 20;
   String _status = 'idle';
   Color _statusColor = Colors.amber;
@@ -41,15 +41,6 @@ class _AccueilState extends State<Accueil> {
       appBar: AppBar(
         title: const Text('Chauffage villeurbanne'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              await appartement.refresh();
-              setState(() {
-                appartement;
-              });
-            },
-          ),
           Switch(
               value: appartement.swith,
               onChanged: ((value) async {
@@ -61,7 +52,16 @@ class _AccueilState extends State<Accueil> {
                 setState(() {
                   appartement;
                 });
-              }))
+              })),
+              IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              await appartement.refresh();
+              setState(() {
+                appartement;
+              });
+            },
+          ),
         ],
       ),
       body: Stack(
@@ -149,13 +149,11 @@ class _AccueilState extends State<Accueil> {
               ),
             ],
           ),
-          appartement.swith
+         appartement.swith
               ? Container()
               : Container(
-                  decoration: appartement.swith
-                      ? new BoxDecoration(
+                  decoration: new BoxDecoration(
                           color: Colors.grey.shade200.withOpacity(0.8))
-                      : new BoxDecoration(),
                 ),
         ],
       ),
