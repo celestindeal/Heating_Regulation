@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Appartement.dart';
 import 'dart:developer';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class Accueil extends StatefulWidget {
   @override
@@ -13,6 +14,8 @@ class Accueil extends StatefulWidget {
 
 class _AccueilState extends State<Accueil> {
   bool init = false;
+  String messageChargement = "Attente connexion";
+  String messageSucces = "Donnée mise à jour";
   Appartement appartement = Appartement(
       fonctionnement: '',
       temperatureVoulu: '',
@@ -27,7 +30,9 @@ class _AccueilState extends State<Accueil> {
 
   @override
   Future _init() async {
+    EasyLoading.show(status: messageChargement);
     await appartement.refresh();
+    EasyLoading.showSuccess(messageSucces);
     setState(() {
       appartement;
     });
@@ -44,19 +49,23 @@ class _AccueilState extends State<Accueil> {
           Switch(
               value: appartement.swith,
               onChanged: ((value) async {
+                EasyLoading.show(status: messageChargement);
                 if (value) {
                   await appartement.fetchAppartementFonctionnementGeneralON();
                 } else {
-                  appartement.fetchAppartementFonctionnementGeneralOFF();
+                  await appartement.fetchAppartementFonctionnementGeneralOFF();
                 }
+                EasyLoading.showSuccess(messageSucces);
                 setState(() {
                   appartement;
                 });
               })),
-              IconButton(
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () async {
+              EasyLoading.show(status: messageChargement);
               await appartement.refresh();
+              EasyLoading.showSuccess(messageSucces);
               setState(() {
                 appartement;
               });
@@ -119,8 +128,10 @@ class _AccueilState extends State<Accueil> {
                   });
                 },
                 onChangeEnd: (value) async {
+                  EasyLoading.show(status: messageChargement);
                   await appartement
                       .fetchAppartementReglageTemperature(value.toString());
+                  EasyLoading.showSuccess(messageSucces);
                   setState(() {
                     appartement;
                   });
@@ -138,8 +149,10 @@ class _AccueilState extends State<Accueil> {
                   textColor: Colors.white,
                   child: new Text("FORCE"),
                   onPressed: () async {
+                    EasyLoading.show(status: messageChargement);
                     await appartement
                         .fetchAppartementFonctionnementGeneralFORCE();
+                    EasyLoading.showSuccess(messageSucces);
                     setState(() {
                       appartement;
                     });
@@ -149,12 +162,11 @@ class _AccueilState extends State<Accueil> {
               ),
             ],
           ),
-         appartement.swith
+          appartement.swith
               ? Container()
               : Container(
                   decoration: new BoxDecoration(
-                          color: Colors.grey.shade200.withOpacity(0.8))
-                ),
+                      color: Colors.grey.shade200.withOpacity(0.8))),
         ],
       ),
       persistentFooterButtons: <Widget>[
