@@ -44,7 +44,7 @@ String time(WiFiUDP Udp) {
     const unsigned long seventyYears = 2208988800UL;
 
     unsigned long epoch = secsSince1900 - seventyYears;
-    int heure  = ((epoch  % 86400L) / 3600);
+    int heure  = ((epoch  % 86400L) / 3600) +1;
     int minute  = ((epoch  % 3600) / 60);
     int seconde  = (epoch % 60);
 
@@ -57,6 +57,35 @@ String time(WiFiUDP Udp) {
     return monheure;
   }
   return "null";
+
+}
+
+
+
+int getHeure(WiFiUDP Udp) {
+  // send an NTP request to the time server at the given address
+  
+    
+  
+  sendNTPpacket(timeServer, Udp);
+  delay(1000);
+
+  if (Udp.parsePacket()) {
+
+    Udp.read(packetBuffer, NTP_PACKET_SIZE);
+
+    unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+    unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+
+    unsigned long secsSince1900 = highWord << 16 | lowWord;
+
+    const unsigned long seventyYears = 2208988800UL;
+
+    unsigned long epoch = secsSince1900 - seventyYears;
+    int heure  = ((epoch  % 86400L) / 3600) +1;
+    return heure;
+  }
+  return 100;
 
 }
 

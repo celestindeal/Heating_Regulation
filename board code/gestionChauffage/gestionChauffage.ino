@@ -17,8 +17,8 @@ int keyIndex = 0;                 // your network key Index number (needed only 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
-int fonctionnementGeneral = 0; 
-int modeFonctionnement = 0;
+int fonctionnementGeneral = 1; 
+int modeFonctionnement = 2;
 bool Operating = false; 
 float temperature = 0;
 float temperatureVoulu = 19.5 ; 
@@ -44,19 +44,7 @@ void loop() {
          digitalWrite(0,HIGH);
         break;
       case 1:
-       switch (modeFonctionnement) {
-        case 1:
-          reguletionTemperature();
-          break;
-        default:
-          Operating = false;
-          break;
-        }
-        if(Operating){
-          digitalWrite(0,LOW);
-        }else{
-          digitalWrite(0,HIGH);
-        }
+        run();
       break;
       case 2:
          digitalWrite(0,LOW);
@@ -67,22 +55,55 @@ void loop() {
   }
   delay(5000);
 }
+void run(){
+  Serial.println("run le fonctionnement");
+  switch (modeFonctionnement) {
+    case 1:
+      reguletionTemperature();
+      break;
+    case 2:
+      reguletionTemperatureHeure();
+      break;
+    default:
+      Operating = false;
+      break;
+  }
+
+  if(Operating){
+    digitalWrite(0,LOW);
+  }else{
+    digitalWrite(0,HIGH);
+  }
+}
 void reguletionTemperature(){
   temperature = dht.readTemperature();
-  if( (temperature+0.5) > temperatureVoulu ){
+  if( (temperature+0.25) > temperatureVoulu ){
     Operating = false;
   }
-  if( (temperatureVoulu-0.5) > temperature){
+  if( (temperatureVoulu-0.25) > temperature){
+    Operating = true;
+  }
+}
+
+void reguletionTemperatureHeure(){
+  temperature = dht.readTemperature();
+  int heure = getHeure(Udp);
+  Serial.println(heure);
+  bool nuit  = heure < 6;
+  if ( ((temperature+0.25) > temperatureVoulu && nuit == false) ||  ((temperature-1) > temperatureVoulu && nuit == true) ){
+    Operating = false;
+  }
+  if ( ((temperature-0.25) < temperatureVoulu && nuit == false) ||  ((temperature-2) < temperatureVoulu && nuit == true) ){
     Operating = true;
   }
 } 
+
 void sendclient(WiFiClient client){
   temperature = dht.readTemperature();
   String message = "Temperature = " + String(temperature)+" °C // Le mode chosir est " + modeFonctionnement  + Operating;
   StaticJsonDocument<200> Appartement;
   String timeActuel = String();
   timeActuel = time(Udp);
-  Serial.println(timeActuel);
   Appartement["FonctionnementGeneral"] = fonctionnementGeneral;
   Appartement["Fonctionnement"] = Operating;
   Appartement["Mode"] = modeFonctionnement;
@@ -92,6 +113,9 @@ void sendclient(WiFiClient client){
   switch (modeFonctionnement) {
     case 1:
       Appartement["Mode"] = "Temperature";
+      break;
+    case 2:
+      Appartement["Mode"] = "Heure";
       break;
     default:
       Appartement["Mode"] = "aucun";
@@ -137,6 +161,9 @@ void choisirMethod(){
         }
         if (currentLine.endsWith("GET /TEMPERATURE")) {
           modeFonctionnement = 1;
+        }
+        if (currentLine.endsWith("GET /HEURE")) {
+          modeFonctionnement = 2;
         }
 
         if (currentLine.endsWith("GET /temperature/12")) {
